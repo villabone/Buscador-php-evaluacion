@@ -1,57 +1,33 @@
 <?php
 
-$ciudad = htmlspecialchars($_GET['ciudad']);
-$tipo = htmlspecialchars($_GET['tipo']);
-$precio = htmlspecialchars($_GET['precio']);
+$nameFile = "data-1.json";
+  $file = fopen($nameFile, "r");
+  $data = fread($file, filesize($nameFile));
+  $dataArray = json_decode($data);
+  $newData = array();
 
-$pos = strpos($precio, ';');
+  if(isset($_POST["ciudad"]) && isset($_POST["tipo"]) && isset($_POST["from"]) && isset($_POST["to"])){
+    $ciudad = $_POST["ciudad"];
+    $tipo = $_POST["tipo"];
+    $from = $_POST["from"];
+    $to = $_POST["to"];
 
-$min = substr($precio, 0, $pos);
-$max = substr($precio, $pos+1);
-
-$file = fopen("data-1.json", "r") or die("No se puede abrir el archivo");
-
-$json = fread($file, filesize('data-1.json'));
-$data = json_decode($json, true);
-
-
-$r = array();
-foreach($data as $i){
-    $p = $i['Precio'];
-    $p = substr($p, strpos($p,'$')+1);
-    $c = strpos($p,',');
-    $p = substr($p,0,$c).substr($p,$c+1);
-    if($p>=$min && $p<=$max){
-        array_push($r, $i);
+    for($i=0; $i < count($dataArray); $i++){
+      $newPrecio = str_replace('$', '', str_replace(',', '', str_replace(' ', '', $dataArray[$i]->Precio)));
+      if($newPrecio >= $from && $newPrecio <= $to && $dataArray[$i]->Ciudad == $ciudad && $dataArray[$i]->Tipo == $tipo){
+        array_push($newData, $dataArray[$i]);
+      }else if($newPrecio >= $from && $newPrecio <= $to && $dataArray[$i]->Ciudad == $ciudad && $tipo == ""){
+        array_push($newData, $dataArray[$i]);
+      }else if($newPrecio >= $from && $newPrecio <= $to && $dataArray[$i]->Tipo == $tipo && $ciudad == ""){
+        array_push($newData, $dataArray[$i]);
+      }else if($newPrecio >= $from && $newPrecio <= $to && $ciudad == "" && $tipo == ""){
+        array_push($newData, $dataArray[$i]);
+      }
     }
-}
-
-$result = array();
-if(!empty($ciudad) && !empty($tipo)){
-    foreach($r as $e){
-        if($e['Ciudad']==$ciudad && $e['Tipo']==$tipo){
-            array_push($result, $e);
-        }
-    }
-} elseif(!empty($ciudad)){
-    foreach($r as $e){
-        if($e['Ciudad']==$ciudad){
-            array_push($result, $e);
-        }
-    }
-} elseif(!empty($tipo)){
-    foreach($r as $e){
-        if($e['Tipo']==$tipo){
-            array_push($result, $e);
-        }
-    }
-} else {
-    $result = $r;
-}
-
-
-$rjson = json_encode($result);
-echo '{"result":"success", "message":"Resultados obtenidos exitosamente", "data":'.$rjson.'}';
+    echo json_encode($newData);
+  }else if(isset($_POST["todos"])){
+    echo $data;
+  }
 
 fclose($file);
 

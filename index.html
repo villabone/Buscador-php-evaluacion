@@ -29,12 +29,21 @@
             <label for="selectCiudad">Ciudad:</label>
             <select name="ciudad" id="selectCiudad">
               <option value="" selected>Elige una ciudad</option>
+              <option value="New York">New York</option>
+              <option value="Orlando">Orlando</option>
+              <option value="Los Angeles">Los Angeles</option>
+              <option value="Houston">Houston</option>
+              <option value="Washington">Washington</option>
+              <option value="Miami">Miami</option>
             </select>
           </div>
           <div class="filtroTipo input-field">
             <label for="selecTipo">Tipo:</label><br>
             <select name="tipo" id="selectTipo">
               <option value="" selected>Elige un tipo</option>
+              <option value="Casa">Casa</option>
+              <option value="Casa de Campo">Casa de Campo</option>
+              <option value="Apartamento">Apartamento</option>
             </select>
           </div>
           <div class="filtroPrecio">
@@ -42,7 +51,7 @@
             <input type="text" id="rangoPrecio" name="precio" value="" />
           </div>
           <div class="botonField">
-            <input type="submit" class="btn white" value="Buscar" id="submitButton" />
+            <input type="submit" class="btn white" value="Buscar" id="submitButton">
           </div>
         </div>
       </form>
@@ -54,6 +63,8 @@
         <div class="divider"></div>
         <button type="button" name="todos" class="btn-flat waves-effect" id="mostrarTodos">Mostrar Todos</button>
       </div>
+
+      <div id="bienes"></div>
 
     </div>
   </div>

@@ -51,70 +51,101 @@ function playVideoOnScroll(){
 inicializarSlider();
 playVideoOnScroll();
 
-function init(){
-  var tipos = [];
-  var ciudades = [];
-  $.get('data-1.json', function(data){
-      for(let i = 0; i < data.length; i++){
-          if(tipos.indexOf(data[i].Tipo) === -1) tipos.push(data[i].Tipo);
-          if(ciudades.indexOf(data[i].Ciudad) === -1) ciudades.push(data[i].Ciudad);
-      }
-      for(let i = 0; i < ciudades.length; i++){
-          $('#selectCiudad').append('<option value="'+ciudades[i]+'">'+ciudades[i]+'</option>');
-      }
-      for(let j = 0; j < tipos.length; j++){
-          $('#selectTipo').append('<option value="'+tipos[j]+'">'+tipos[j]+'</option>');
-      }
-      $('select').material_select();
-  });
-}
+$(function(){
+  var Bienes = {
+    formulario: $('#formulario'),
+    $btnTodos: $('#mostrarTodos'),
+    contBienes: $('#bienes'),
 
-$(document).ready(function(){
-  inicializarSlider();
-  init();
-});
+    Init: function(){
+      var self = this
+      self.cargarSelect()
+      self.cargarTodos()
+      self.formulario.submit(function(e){
+        e.preventDefault()
+        self.searchBienes()
+      })
+    },
+    cargarSelect: function(){
+      $('select').material_select()
+    },
+    searchBienes: function(e){
+      var self = this
+      var ciudad = $('form').find('select[id="selectCiudad"]').val()
+      var tipo = $('form').find('select[id="selectTipo"]').val()
+      var from = self.toNumero($('.irs-from').text())
+      var to = self.toNumero($('.irs-to').text())
 
-function showResult(array){
-  $('.resultados').empty();
-  for(let i=0; i<array.length; i++){
-      $('.resultados').append(`<div class="card horizontal">
-          <div class="card-image place-wrapper">
-              <img class="img-responsive place-image" src="img/${array[i].Ciudad}.jpg">
-          </div>
-          <div class="card-stacked">
-              <div class="card-content">
-                  <p>
-                      <b>Dirección: </b>${array[i].Direccion}<br>
-                      <b>Ciudad: </b>${array[i].Ciudad}<br>
-                      <b>Teléfono: </b>${array[i].Telefono}<br>
-                      <b>Código Postal: </b>${array[i].Codigo_Postal}<br>
-                      <b>Tipo: </b>${array[i].Tipo}<br>
-                      <span class="price"><b>Precio: </b>${array[i].Precio}</span>
-                  </p>
-              </div>
-              <div class="card-action">
-                  <a>Ver mas</a>
-              </div>
-          </div>
-      </div>`);
+      var datos = {ciudad: ciudad, tipo: tipo, from: from, to: to}
+      self.ajaxData(datos)
+    },
+    cargarTodos: function(){
+      var self = this
+      self.$btnTodos.on('click', (e)=>{
+        var datos = {todos: ""}
+        self.ajaxData(datos)
+      })
+    },
+    ajaxData: function(datos){
+      var self = this
+      $.ajax({
+        url: 'buscador.php',
+        type: 'POST',
+        data: datos
+      }).done(function(data){
+        var newData = JSON.parse(data)
+        self.renderBienes(newData)
+      })
+    },
+    toNumero: function(num){
+      var numero = num
+      var newNumero = Number(numero.replace('$', '').replace(',', '').replace(' ', ''))
+      return newNumero
+    },
+    renderBienes: function(bienes){
+      var self = this
+      var bien = bienes
+      self.contBienes.html('')
+
+      bien.map((bien)=>{
+        var bienTemplate = '<div class="itemMostrado card horizontal">'+
+                                '<img src="img/home.jpg">'+
+                                '<div class="card-stacked">'+
+                                '<div class="card-content">'+
+                                '<div>'+
+                                '<b>Direccion: </b>:direccion:<p></p>'+
+                                '</div>'+
+                                '<div>'+
+                                '<b>Ciudad: </b>:ciudad:<p></p>'+
+                                '</div>'+
+                                '<div>'+
+                                '<b>Telefono: </b>:telefono:<p></p>'+
+                                '</div>'+
+                                '<div>'+
+                                '<b>Código postal: </b>:codigo_postal:<p></p>'+
+                                '</div>'+
+                                '<div>'+
+                                '<b>Precio: </b>:precio:<p></p>'+
+                                '</div>'+
+                                '<div>'+
+                                '<b>Tipo: </b>:tipo:<p></p>'+
+                                '</div>'+
+                                '</div>'+
+                                '<div class="card-action right-align">'+
+                                '<a href="#">Ver más</a>'+
+                                '</div>'+
+                                '</div>'+
+                                '</div>';
+
+        var newBien = bienTemplate.replace(':direccion:', bien.Direccion)
+                                  .replace(':ciudad:', bien.Ciudad)
+                                  .replace(':telefono:', bien.Telefono)
+                                  .replace(':codigo_postal:', bien.Codigo_Postal)
+                                  .replace(':precio:', bien.Precio)
+                                  .replace(':tipo:', bien.Tipo)
+        self.contBienes.append(newBien)
+      })
+    }
   }
-}
-
-$('#mostrarTodos').click(function(){
-  $.get('data-1.json', function(data){
-      showResult(data);
-  });
-});
-
-$('#submitButton').click(function(){
-  let ciudad = $('#selectCiudad option:selected').val();
-  let tipo = $('#selectTipo option:selected').val();
-  let precio = $('#rangoPrecio').val();
-  console.log(ciudad + ' + ' + tipo + ' + ' + precio);
-
-  $.get('buscador.php', {ciudad:ciudad, tipo:tipo, precio:precio}, function(response){
-    let data = JSON.parse(response);
-    var r = data.data;
-    showResult(r);
-  });
-});
+  Bienes.Init()
+})
